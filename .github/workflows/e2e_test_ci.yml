@@ -83,18 +83,43 @@ jobs:
       - name: Install spice (TEMP)
         run: |
           curl https://install.spiceai.org | /bin/bash
+          echo "/Users/runner/.spice/bin" >> $GITHUB_PATH
         shell: bash
-
-      - name: Add Spice bin to PATH
-        run: echo "/Users/runner/.spice/bin" >> $GITHUB_PATH
 
       - name: Check spice version
         run: spice version
 
-      - name: Run tests
+      - name: Init spice app
         run: |
-          echo "Running test_1 on ${{ matrix.binary }}"
-          ls -la ./binaries
+          # TODO
+          mkdir test_app && cd test_app
+          spice init test_app
+
+      - name: Connect Dremio
+        working-directory: test_app
+        run: |
+          spice login dremio -u demo -p demo1234
+
+      - name: Start spice runtime
+        working-directory: test_app
+        run: |
+          spice run &
+
+      - name: Wait for Spice runtime healthy
+        working-directory: test_app
+        run: |
+          timeout 60 bash -c 'while [[ "$(curl -s http://localhost:3000/health)" != "ok" ]]; do sleep 1; done' || false
+
+      - name: Add spiceai/quickstart
+        working-directory: test_app
+        run: |
+          spice add spiceai/quickstart
+          cat spicepod.yaml
+
+      - name: Check datasets
+        working-directory: test_app
+        run: |
+          curl http://localhost:3000/v1/datasets | jq
 
   # test_qyuckstart_spiceai:
   #   name: "E2E Test: Spiceai quickstart, using ${{ matrix.binary }}"
