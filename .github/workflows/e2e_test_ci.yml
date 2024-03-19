@@ -51,16 +51,18 @@ jobs:
       - id: build
         name: Build binaries
         run: |
-          echo "build"
-          touch ${{ matrix.binary }}-bin.txt
-          echo "binaries: ${{ matrix.binary }}-binaries" >> ${{ matrix.binary }}-bin.txt
-          # cp -r ${{ matrix.binary }}-bin.txt artifacts/
+          mkdir -p artifacts/${{ matrix.binary }}
+          touch artifacts/${{ matrix.binary }}/spice.txt
+          echo "binaries: ${{ matrix.binary }}-binaries" >> artifacts/${{ matrix.binary }}/spice.txt
 
-    outputs:
-      binaries: ${{ steps.build.outputs.binaries }}
+      - name: Upload binaries
+        uses: actions/upload-artifact@v2
+        with:
+          name: binaries-${{ matrix.binary }}
+          path: artifacts/${{ matrix.binary }}
 
-  test:
-    name: Test ${{ matrix.name }} binaries
+  test_1:
+    name: Test 1 ${{ matrix.name }} binaries
     runs-on: ${{ matrix.runner }}
     needs: build
 
@@ -70,15 +72,45 @@ jobs:
           - name: Linux x64
             binary: linux-x64
             runner: rust
-            target_os: linux
           - name: macOS aarch64 (Apple Silicon)
             binary: macos-x64
             runner: macos-14
-            target_os: darwin
 
     steps:
-      - id: test
-        name: Test binaries
+      - name: Download binaries
+        uses: actions/download-artifact@v2
+        with:
+          name: binaries-${{ matrix.binary }}
+          path: binaries
+
+      - name: Run tests
         run: |
-          echo "test"
-          echo "binaries: ${{ needs.build.outputs.binaries }}" >> ${{ matrix.binary }}-test.txt
+          echo "Running test_1 on ${{ matrix.binary }}"
+          cat binaries/${{ matrix.binary }}/spice.txt
+
+  test_2:
+    name: Test 2 ${{ matrix.name }} binaries
+    runs-on: ${{ matrix.runner }}
+    needs: build
+
+    strategy:
+      matrix:
+        include:
+          - name: Linux x64
+            binary: linux-x64
+            runner: rust
+          - name: macOS aarch64 (Apple Silicon)
+            binary: macos-x64
+            runner: macos-14
+
+    steps:
+      - name: Download binaries
+        uses: actions/download-artifact@v2
+        with:
+          name: binaries-${{ matrix.binary }}
+          path: binaries
+
+      - name: Run tests
+        run: |
+          echo "Running test_1 on ${{ matrix.binary }}"
+          cat binaries/${{ matrix.binary }}/spice.txt
