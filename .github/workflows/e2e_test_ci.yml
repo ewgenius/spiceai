@@ -36,11 +36,11 @@ jobs:
             target_os: darwin
             target_arch: aarch64
             target_arch_go: arm64
-          - name: macOS x64 (Intel)
-            runner: rust-osx-x64
-            target_os: darwin
-            target_arch: x86_64
-            target_arch_go: amd64
+          # - name: macOS x64 (Intel)
+          #   runner: rust-osx-x64
+          #   target_os: darwin
+          #   target_arch: x86_64
+          #   target_arch_go: amd64
           # - name: Windows x64
           #   runner: rust-windows-x64
           #   target_os: windows
@@ -56,7 +56,7 @@ jobs:
           echo "binaries: ${{ matrix.binary }}-binaries" >> artifacts/${{ matrix.binary }}/spice.txt
 
       - name: Upload binaries
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: binaries-${{ matrix.binary }}
           path: artifacts/${{ matrix.binary }}
@@ -78,7 +78,7 @@ jobs:
 
     steps:
       - name: Download binaries
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v4
         with:
           name: binaries-${{ matrix.binary }}
           path: binaries
@@ -102,13 +102,13 @@ jobs:
           - name: macOS aarch64 (Apple Silicon)
             binary: macos-x64
             runner: macos-14
-          - name: macOS x64 (Intel)
-            runner: rust-osx-x64
-            target_os: darwin
+          # - name: macOS x64 (Intel)
+          #   runner: rust-osx-x64
+          #   target_os: darwin
 
     steps:
       - name: Download binaries
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v4
         with:
           name: binaries-${{ matrix.binary }}
           path: binaries
