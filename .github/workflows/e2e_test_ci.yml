@@ -83,25 +83,19 @@ jobs:
       - name: Run tests
         run: |
           echo "Running test_1 on ${{ matrix.binary }}"
-          cat binaries/${{ matrix.binary }}/spice.txt
+          ls -la ./
 
-  test_2:
-    name: Test 2 ${{ matrix.name }} binaries
+  test_qyuckstart_spiceai:
+    name: "E2E Test: Spiceai quickstart, using ${{ matrix.binary }}"
     runs-on: ${{ matrix.runner }}
     needs: build
 
     strategy:
       matrix:
         include:
-          # - name: Linux x64
-          #   binary: linux-x64
-          #   runner: rust
           - name: macOS aarch64 (Apple Silicon)
             binary: macos-x64
             runner: macos-14
-          # - name: macOS x64 (Intel)
-          #   runner: rust-osx-x64
-          #   target_os: darwin
 
     steps:
       - name: Download binaries
@@ -113,4 +107,4 @@ jobs:
       - name: Run tests
         run: |
           echo "Running test_1 on ${{ matrix.binary }}"
-          cat binaries/${{ matrix.binary }}/spice.txt
+          ls -la ./
