@@ -24,14 +24,164 @@ jobs:
     strategy:
       matrix:
         include:
+          - name: Linux x64
+            runner: rust
+            target_os: linux
+            target_arch: x86_64
+            target_arch_go: amd64
+          - name: macOS aarch64 (Apple Silicon)
+            runner: macos-14
+            target_os: darwin
+            target_arch: aarch64
+            target_arch_go: arm64
+          - name: macOS x64 (Intel)
+            runner: rust-osx-x64
+            target_os: darwin
+            target_arch: x86_64
+            target_arch_go: amd64
+          # - name: Windows x64
+          #   runner: rust-windows-x64
+          #   target_os: windows
+          #   target_arch: x86_64
+          #   target_arch_go: amd64
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set REL_VERSION from version.txt
+        run: python3 ./.github/scripts/get_release_version.py
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: ${{ env.GOVER }}
+
+      - name: Set up Rust
+        uses: ./.github/actions/setup-rust
+        with:
+          os: ${{ matrix.target_os }}
+
+      - name: Restore build cache (macOS)
+        if: matrix.target_os == 'darwin'
+        run: |
+          mkdir -p target
+          if [ -d /Users/spiceai/build/target ]; then
+            rsync -av /Users/spiceai/build/target/ target/
+          fi
+
+      - name: Restore build cache (Linux)
+        if: matrix.target_os == 'linux'
+        run: |
+          mkdir -p target
+          if [ -d /home/spiceai/build/target ]; then
+            rsync -av /home/spiceai/build/target/ target/
+          fi
+
+      - name: Restore build cache (Windows)
+        if: matrix.target_os == 'windows'
+        run: |
+          mkdir -p target
+          if (Test-Path C:/spiceai/build/target) {
+            Copy-Item -Recurse -Force C:/spiceai/build/target/* target/
+          }
+
+      - name: Build spiced
+        run: make -C bin/spiced
+
+      - name: Update build cache (macOS)
+        if: matrix.target_os == 'darwin'
+        run: |
+          if [ -d /Users/spiceai/build/target ]; then
+            rsync -av target/ /Users/spiceai/build/target/
+          fi
+
+      - name: Update build cache (Linux)
+        if: matrix.target_os == 'linux'
+        run: |
+          if [ -d /home/spiceai/build/target ]; then
+            rsync -av target/ /home/spiceai/build/target/
+          fi
+
+      - name: Update build cache (Windows)
+        if: matrix.target_os == 'windows'
+        run: |
+          if (Test-Path C:/spiceai/build/target) {
+            Copy-Item -Recurse -Force target/* C:/spiceai/build/target
+          }
+
+      - name: Build spice
+        run: make -C bin/spice
+
+      - name: tar binary
+        if: matrix.target_os != 'windows'
+        run: |
+          mv target/release/spiced spiced
+          chmod +x spiced
+          tar cf spiced_${{ matrix.target_os }}_${{ matrix.target_arch }}.tar.gz spiced
+
+      - name: copy binary
+        if: matrix.target_os == 'windows'
+        run: |
+          mv target/release/spiced.exe spiced.exe
+
+      - name: Print version
+        if: matrix.target_os != 'windows'
+        run: ./spiced --version
+
+      - uses: actions/upload-artifact@v4
+        if: matrix.target_os != 'windows'
+        with:
+          name: spiced_${{ matrix.target_os }}_${{ matrix.target_arch }}
+          path: spiced_${{ matrix.target_os }}_${{ matrix.target_arch }}.tar.gz
+
+      - uses: actions/upload-artifact@v4
+        if: matrix.target_os == 'windows'
+        with:
+          name: spiced_${{ matrix.target_os }}_${{ matrix.target_arch }}
+          path: spiced.exe
+
+      - name: tar binary
+        if: matrix.target_os != 'windows'
+        run: |
+          mv target/release/spice spice
+          chmod +x spice
+          tar cf spice_${{ matrix.target_os }}_${{ matrix.target_arch }}.tar.gz spice
+
+      - name: copy binary
+        if: matrix.target_os == 'windows'
+        run: |
+          mv target/release/spice.exe spice.exe
+
+      - name: Print version
+        if: matrix.target_os != 'windows'
+        run: ./spice version
+
+      - uses: actions/upload-artifact@v4
+        if: matrix.target_os != 'windows'
+        with:
+          name: spice_${{ matrix.target_os }}_${{ matrix.target_arch }}
+          path: spice_${{ matrix.target_os }}_${{ matrix.target_arch }}.tar.gz
+
+      - uses: actions/upload-artifact@v4
+        if: matrix.target_os == 'windows'
+        with:
+          name: spice_${{ matrix.target_os }}_${{ matrix.target_arch }}
+          path: spice.exe
+
+  test_qyuckstart_dremio:
+    name: "E2E Test: Dremio quickstart, using ${{ matrix.target_os }}-${{ matrix.target_arch }}"
+    runs-on: ${{ matrix.runner }}
+    needs: build
+
+    strategy:
+      matrix:
+        include:
           # - name: Linux x64
-          #   binary: linux-x64
           #   runner: rust
           #   target_os: linux
           #   target_arch: x86_64
           #   target_arch_go: amd64
           - name: macOS aarch64 (Apple Silicon)
-            binary: macos-x64
             runner: macos-14
             target_os: darwin
             target_arch: aarch64
@@ -41,47 +191,18 @@ jobs:
           #   target_os: darwin
           #   target_arch: x86_64
           #   target_arch_go: amd64
-          # - name: Windows x64
-          #   runner: rust-windows-x64
-          #   target_os: windows
-          #   target_arch: x86_64
-          #   target_arch_go: amd64
 
     steps:
-      - id: build
-        name: Build binaries
-        run: |
-          mkdir -p artifacts/${{ matrix.binary }}
-          touch artifacts/${{ matrix.binary }}/spice.txt
-          echo "binaries: ${{ matrix.binary }}-binaries" >> artifacts/${{ matrix.binary }}/spice.txt
-
-      - name: Upload binaries
-        uses: actions/upload-artifact@v4
-        with:
-          name: binaries-${{ matrix.binary }}
-          path: artifacts/${{ matrix.binary }}
-
-  test_qyuckstart_dremio:
-    name: "E2E Test: Dremio quickstart, using ${{ matrix.binary }}"
-    runs-on: ${{ matrix.runner }}
-    needs: build
-
-    strategy:
-      matrix:
-        include:
-          - name: macOS aarch64 (Apple Silicon)
-            binary: macos-x64
-            runner: macos-14
-
-    steps:
-      - name: Download binaries
+      - name: download artifacts - spice_${{ matrix.target_os }}_${{ matrix.target_arch }}
         uses: actions/download-artifact@v4
         with:
-          name: binaries-${{ matrix.binary }}
-          path: binaries
+          name: spice_${{ matrix.target_os }}_${{ matrix.target_arch }}
+          path: ./build
 
       - name: Install spice (TEMP)
         run: |
+          ls -la
+          ls -la ./build
           curl https://install.spiceai.org | /bin/bash
           echo "$HOME/.spice/bin" >> $GITHUB_PATH
         shell: bash
@@ -140,27 +261,3 @@ jobs:
             echo "Unexpected response: $response, expected 5 tables"
             exit 1
           fi
-
-  # test_qyuckstart_spiceai:
-  #   name: "E2E Test: Spiceai quickstart, using ${{ matrix.binary }}"
-  #   runs-on: ${{ matrix.runner }}
-  #   needs: build
-
-  #   strategy:
-  #     matrix:
-  #       include:
-  #         - name: macOS aarch64 (Apple Silicon)
-  #           binary: macos-x64
-  #           runner: macos-14
-
-  #   steps:
-  #     - name: Download binaries
-  #       uses: actions/download-artifact@v4
-  #       with:
-  #         name: binaries-${{ matrix.binary }}
-  #         path: binaries
-
-  #     - name: Run tests
-  #       run: |
-  #         echo "Running test_1 on ${{ matrix.binary }}"
-  #         ls -la ./
