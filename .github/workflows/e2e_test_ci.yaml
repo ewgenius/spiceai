@@ -25,11 +25,13 @@ jobs:
       matrix:
         include:
           - name: Linux x64
+            binary: linux-x64
             runner: rust
             target_os: linux
             target_arch: x86_64
             target_arch_go: amd64
           - name: macOS aarch64 (Apple Silicon)
+            binary: macos-x64
             runner: macos-14
             target_os: darwin
             target_arch: aarch64
@@ -50,14 +52,33 @@ jobs:
         name: Build binaries
         run: |
           echo "build"
-          touch ${{ matrix.name }}-bin.txt
-          echo "binaries: ${{ matrix.name }}-binaries" >> ${{ matrix.name }}-bin.txt
-          cp -r ${{ matrix.name }}-bin.txt artifacts/
+          touch ${{ matrix.binary }}-bin.txt
+          echo "binaries: ${{ matrix.binary }}-binaries" >> ${{ matrix.binary }}-bin.txt
+          cp -r ${{ matrix.binary }}-bin.txt artifacts/
 
     outputs:
       binaries: ${{ steps.build.outputs.binaries }}
 
-  # test:
-  #   name: Test ${{ matrix.name }} binaries
-  #   runs-on: ${{ matrix.runner }}
-  #   needs: build
+  test:
+    name: Test ${{ matrix.name }} binaries
+    runs-on: ${{ matrix.runner }}
+    needs: build
+
+    strategy:
+      matrix:
+        include:
+          - name: Linux x64
+            binary: linux-x64
+            runner: rust
+            target_os: linux
+          - name: macOS aarch64 (Apple Silicon)
+            binary: macos-x64
+            runner: macos-14
+            target_os: darwin
+
+    steps:
+      - id: test
+        name: Test binaries
+        run: |
+          echo "test"
+          echo "binaries: ${{ needs.build.outputs.binaries }}" >> ${{ matrix.binary }}-test.txt
