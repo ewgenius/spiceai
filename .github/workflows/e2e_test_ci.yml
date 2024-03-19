@@ -80,31 +80,38 @@ jobs:
           name: binaries-${{ matrix.binary }}
           path: binaries
 
-      - name: Run tests
+      - name: Install spice (TEMP)
         run: |
-          echo "Running test_1 on ${{ matrix.binary }}"
-          ls -la ./
+          curl https://install.spiceai.org | /bin/bash
 
-  test_qyuckstart_spiceai:
-    name: "E2E Test: Spiceai quickstart, using ${{ matrix.binary }}"
-    runs-on: ${{ matrix.runner }}
-    needs: build
-
-    strategy:
-      matrix:
-        include:
-          - name: macOS aarch64 (Apple Silicon)
-            binary: macos-x64
-            runner: macos-14
-
-    steps:
-      - name: Download binaries
-        uses: actions/download-artifact@v4
-        with:
-          name: binaries-${{ matrix.binary }}
-          path: binaries
+      - name: Check spice version
+        run: spice version
 
       - name: Run tests
         run: |
           echo "Running test_1 on ${{ matrix.binary }}"
-          ls -la ./
+          ls -la ./binaries
+
+  # test_qyuckstart_spiceai:
+  #   name: "E2E Test: Spiceai quickstart, using ${{ matrix.binary }}"
+  #   runs-on: ${{ matrix.runner }}
+  #   needs: build
+
+  #   strategy:
+  #     matrix:
+  #       include:
+  #         - name: macOS aarch64 (Apple Silicon)
+  #           binary: macos-x64
+  #           runner: macos-14
+
+  #   steps:
+  #     - name: Download binaries
+  #       uses: actions/download-artifact@v4
+  #       with:
+  #         name: binaries-${{ matrix.binary }}
+  #         path: binaries
+
+  #     - name: Run tests
+  #       run: |
+  #         echo "Running test_1 on ${{ matrix.binary }}"
+  #         ls -la ./
