@@ -120,7 +120,26 @@ jobs:
       - name: Check datasets
         working-directory: test_app
         run: |
-          curl http://localhost:3000/v1/datasets | jq
+          response=$(curl http://localhost:3000/v1/datasets)
+          length=$(echo $response | jq 'if type=="array" then length else empty end')
+          if [[ $length -ne 1 ]]; then
+            echo "Unexpected response: $response, expected 1 dataset"
+            exit 1
+          fi
+
+      - name: Check tables
+        working-directory: test_app
+        run: |
+          response=$(curl -X POST \
+            -H "Content-Type: text/plain" \
+            -d "show tables;" \
+            http://localhost:3000/v1/sql
+          )
+          tables=$(echo $response | jq 'if type=="array" then length else empty end')
+          if [[ $length -ne 5 ]]; then
+            echo "Unexpected response: $response, expected 5 tables"
+            exit 1
+          fi
 
   # test_qyuckstart_spiceai:
   #   name: "E2E Test: Spiceai quickstart, using ${{ matrix.binary }}"
