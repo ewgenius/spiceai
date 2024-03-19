@@ -112,61 +112,42 @@ jobs:
       - name: Build spice
         run: make -C bin/spice
 
-      - name: tar binary
+      - name: make spiced executable
         if: matrix.target_os != 'windows'
         run: |
           mv target/release/spiced spiced
           chmod +x spiced
-          tar cf spiced_${{ matrix.target_os }}_${{ matrix.target_arch }}.tar.gz spiced
 
-      - name: copy binary
-        if: matrix.target_os == 'windows'
-        run: |
-          mv target/release/spiced.exe spiced.exe
-
-      - name: Print version
-        if: matrix.target_os != 'windows'
-        run: ./spiced --version
-
-      - uses: actions/upload-artifact@v4
-        if: matrix.target_os != 'windows'
-        with:
-          name: spiced_${{ matrix.target_os }}_${{ matrix.target_arch }}
-          path: spiced_${{ matrix.target_os }}_${{ matrix.target_arch }}.tar.gz
-
-      - uses: actions/upload-artifact@v4
-        if: matrix.target_os == 'windows'
-        with:
-          name: spiced_${{ matrix.target_os }}_${{ matrix.target_arch }}
-          path: spiced.exe
-
-      - name: tar binary
+      - name: make spice executable
         if: matrix.target_os != 'windows'
         run: |
           mv target/release/spice spice
           chmod +x spice
-          tar cf spice_${{ matrix.target_os }}_${{ matrix.target_arch }}.tar.gz spice
 
-      - name: copy binary
-        if: matrix.target_os == 'windows'
+      - name: Print versions
+        if: matrix.target_os != 'windows'
         run: |
-          mv target/release/spice.exe spice.exe
+          ./spice --version
+          ./spiced --version
 
-      - name: Print version
-        if: matrix.target_os != 'windows'
-        run: ./spice version
-
-      - uses: actions/upload-artifact@v4
+      - name: Save spice artifact
+        uses: actions/upload-artifact@v4
         if: matrix.target_os != 'windows'
         with:
-          name: spice_${{ matrix.target_os }}_${{ matrix.target_arch }}
-          path: spice_${{ matrix.target_os }}_${{ matrix.target_arch }}.tar.gz
+          name: spice
+          path: spice
 
-      - uses: actions/upload-artifact@v4
-        if: matrix.target_os == 'windows'
+      - name: Save spiced artifact
+        uses: actions/upload-artifact@v4
+        if: matrix.target_os != 'windows'
         with:
-          name: spice_${{ matrix.target_os }}_${{ matrix.target_arch }}
-          path: spice.exe
+          name: spiced
+          path: spiced
+
+      - name: Merge spice and spiced in single artifact
+        uses: actions/upload-artifact/merge@v4
+        with:
+          name: build_${{ matrix.target_os }}_${{ matrix.target_arch }}
 
   test_qyuckstart_dremio:
     name: "E2E Test: Dremio quickstart, using ${{ matrix.target_os }}-${{ matrix.target_arch }}"
@@ -197,18 +178,19 @@ jobs:
           #   target_arch: x86_64
           #   target_arch_go: amd64
     steps:
-      - name: download artifacts - spice_${{ matrix.target_os }}_${{ matrix.target_arch }}
+      - name: download artifacts - build_${{ matrix.target_os }}_${{ matrix.target_arch }}
         uses: actions/download-artifact@v4
         with:
-          name: spice_${{ matrix.target_os }}_${{ matrix.target_arch }}
+          name: build_${{ matrix.target_os }}_${{ matrix.target_arch }}
           path: ./build
 
       - name: Install spice (TEMP)
         run: |
           ls -la
           ls -la ./build
-          curl https://install.spiceai.org | /bin/bash
-          echo "$HOME/.spice/bin" >> $GITHUB_PATH
+          # curl https://install.spiceai.org | /bin/bash
+          # echo "$HOME/.spice/bin" >> $GITHUB_PATH
+          echo "./build" >> $GITHUB_PATH
         shell: bash
 
       - name: Check spice version
