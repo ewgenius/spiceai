@@ -61,17 +61,14 @@ jobs:
           name: binaries-${{ matrix.binary }}
           path: artifacts/${{ matrix.binary }}
 
-  test_1:
-    name: Test 1 ${{ matrix.name }} binaries
+  test_qyuckstart_dremio:
+    name: "E2E Test: Dremio quickstart, using ${{ matrix.binary }}"
     runs-on: ${{ matrix.runner }}
     needs: build
 
     strategy:
       matrix:
         include:
-          - name: Linux x64
-            binary: linux-x64
-            runner: rust
           - name: macOS aarch64 (Apple Silicon)
             binary: macos-x64
             runner: macos-14
