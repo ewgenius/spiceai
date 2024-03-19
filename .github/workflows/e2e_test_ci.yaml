@@ -54,7 +54,7 @@ jobs:
           echo "build"
           touch ${{ matrix.binary }}-bin.txt
           echo "binaries: ${{ matrix.binary }}-binaries" >> ${{ matrix.binary }}-bin.txt
-          cp -r ${{ matrix.binary }}-bin.txt artifacts/
+          # cp -r ${{ matrix.binary }}-bin.txt artifacts/
 
     outputs:
       binaries: ${{ steps.build.outputs.binaries }}
