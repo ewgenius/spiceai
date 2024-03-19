@@ -86,7 +86,7 @@ jobs:
         shell: bash
 
       - name: Add Spice bin to PATH
-        run: echo "/home/runner/.spice/bin" >> $GITHUB_PATH
+        run: echo "/Users/runner/.spice/bin" >> $GITHUB_PATH
 
       - name: Check spice version
         run: spice version
