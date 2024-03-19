@@ -83,6 +83,7 @@ jobs:
       - name: Install spice (TEMP)
         run: |
           curl https://install.spiceai.org | /bin/bash
+        shell: bash
 
       - name: Check spice version
         run: spice version
