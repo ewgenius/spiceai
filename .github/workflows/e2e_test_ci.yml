@@ -85,6 +85,9 @@ jobs:
           curl https://install.spiceai.org | /bin/bash
         shell: bash
 
+      - name: Add Spice bin to PATH
+        run: echo "/home/runner/.spice/bin" >> $GITHUB_PATH
+
       - name: Check spice version
         run: spice version
 
