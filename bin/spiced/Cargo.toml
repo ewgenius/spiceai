@@ -30,6 +30,7 @@ serde_yaml.workspace = true
 snafu.workspace = true
 snmalloc-rs = "0.3.6"
 spice-cloud = { path = "../../crates/spice_cloud" }
+tpch-extension = { path = "../../crates/tpch_extension" }
 tokio.workspace = true
 telemetry = { path = "../../crates/telemetry" }
 tracing.workspace = true

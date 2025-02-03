@@ -154,6 +154,7 @@ paste.workspace = true
 scopeguard = "1.2.0"
 serde_json = { workspace = true, features = ["preserve_order"] }
 spice-cloud = { path = "../spice_cloud" }
+tpch-extension = { path = "../tpch_extension" }
 test-framework = { path = "../test-framework" }
 tokio = { workspace = true, features = ["time", "test-util"] }
 tracing-opentelemetry.workspace = true

@@ -41,6 +41,7 @@ use serde_yaml::Value;
 use snafu::prelude::*;
 use spice_cloud::SpiceExtensionFactory;
 use spiced_tracing::LogVerbosity;
+use tpch_extension::TpchExtensionFactory;
 use tracing::subscriber;
 
 #[path = "tracing.rs"]
@@ -191,6 +192,11 @@ pub async fn run(args: Args) -> Result<()> {
         if let Some(manifest) = app.extensions.get("spice_cloud") {
             let spice_extension_factory = SpiceExtensionFactory::new(manifest.clone());
             extension_factories.push(Box::new(spice_extension_factory));
+        }
+
+        if let Some(manifest) = app.extensions.get("tpch") {
+            let tpch_extension_factory = TpchExtensionFactory::new(manifest.clone());
+            extension_factories.push(Box::new(tpch_extension_factory));
         }
     }
 
