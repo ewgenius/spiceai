@@ -31,19 +31,18 @@ use runtime::{
 };
 // use tokio::sync::RwLock;
 
-#[derive(Debug, Snafu)]
-pub enum Error {
-    #[snafu(display("Unable to get read table provider"))]
-    NoReadProvider {},
+// #[derive(Debug, Snafu)]
+// pub enum Error {
+//     #[snafu(display("Unable to get read table provider"))]
+//     NoReadProvider {},
 
-    #[snafu(display("Unable to create data connector"))]
-    UnableToCreateDataConnector {
-        source: Box<dyn std::error::Error + Sync + Send>,
-    },
-
-    #[snafu(display("Unable to create source table provider"))]
-    UnableToCreateSourceTableProvider { source: DataConnectorError },
-}
+//     #[snafu(display("Unable to create data connector"))]
+//     UnableToCreateDataConnector {
+//         source: Box<dyn std::error::Error + Sync + Send>,
+//     },
+//     // #[snafu(display("Unable to create source table provider"))]
+//     // UnableToCreateSourceTableProvider { source: DataConnectorError },
+// }
 
 pub struct TpchExtension {
     manifest: ExtensionManifest,
