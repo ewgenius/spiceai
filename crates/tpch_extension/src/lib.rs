@@ -14,23 +14,22 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-use std::{collections::HashMap, sync::Arc};
+// use std::{collections::HashMap, sync::Arc};
 
-use async_trait::async_trait;
-
-use datafusion::catalog::TableProvider;
+// use datafusion::catalog::TableProvider;
 use duckdb::Connection;
 use snafu::prelude::*;
 
+use async_trait::async_trait;
 use runtime::{
-    component::dataset::Dataset,
-    dataconnector::{create_new_connector, ConnectorParamsBuilder, DataConnectorError},
+    // component::dataset::Dataset,
+    // dataconnector::{create_new_connector, ConnectorParamsBuilder, DataConnectorError},
     extension::{Error as ExtensionError, Extension, ExtensionFactory, ExtensionManifest, Result},
-    federated_table::FederatedTable,
+    // federated_table::FederatedTable,
     secrets::Secrets,
     Runtime,
 };
-use tokio::sync::RwLock;
+// use tokio::sync::RwLock;
 
 #[derive(Debug, Snafu)]
 pub enum Error {
@@ -56,25 +55,25 @@ impl TpchExtension {
         TpchExtension { manifest }
     }
 
-    async fn register_tpch_table(&self, runtime: &Runtime, name: &str, path: &str) -> Result<()> {
-        let dataset = get_duckdb_dataset(name, path)
-            .boxed()
-            .map_err(|e| runtime::extension::Error::UnableToStartExtension { source: e })?;
+    // async fn register_tpch_table(&self, runtime: &Runtime, name: &str, path: &str) -> Result<()> {
+    //     let dataset = get_duckdb_dataset(name, path)
+    //         .boxed()
+    //         .map_err(|e| runtime::extension::Error::UnableToStartExtension { source: e })?;
 
-        let table = create_tpch_table(name, &dataset, runtime.secrets())
-            .await
-            .boxed()
-            .map_err(|e| runtime::extension::Error::UnableToStartExtension { source: e })?;
+    //     let table = create_tpch_table(name, &dataset, runtime.secrets())
+    //         .await
+    //         .boxed()
+    //         .map_err(|e| runtime::extension::Error::UnableToStartExtension { source: e })?;
 
-        runtime
-            .datafusion()
-            .register_table(Arc::new(dataset), table)
-            .await
-            .boxed()
-            .map_err(|e| runtime::extension::Error::UnableToStartExtension { source: e })?;
+    //     runtime
+    //         .datafusion()
+    //         .register_table(Arc::new(dataset), table)
+    //         .await
+    //         .boxed()
+    //         .map_err(|e| runtime::extension::Error::UnableToStartExtension { source: e })?;
 
-        Ok(())
-    }
+    //     Ok(())
+    // }
 }
 
 impl Default for TpchExtension {
@@ -133,9 +132,9 @@ impl Extension for TpchExtension {
 
         println!("TPCH extension is loaded");
 
-        let secrets = runtime.secrets();
+        // let secrets = runtime.secrets();
 
-        let tpch_part_provider = get_tpch_table_provider("tpch.part", path.as_str(), secrets);
+        // let tpch_part_provider = get_tpch_table_provider("tpch.part", path.as_str(), secrets);
 
         // let dataset_name = "tpch.part";
 
@@ -197,49 +196,49 @@ impl ExtensionFactory for TpchExtensionFactory {
     }
 }
 
-async fn create_tpch_table(
-    name: &str,
-    dataset: &Dataset,
-    secrets: Arc<RwLock<Secrets>>,
-) -> Result<FederatedTable, Error> {
-    let tpch_part_provider = get_tpch_table_provider(name, dataset, secrets).await?;
+// async fn create_tpch_table(
+//     name: &str,
+//     dataset: &Dataset,
+//     secrets: Arc<RwLock<Secrets>>,
+// ) -> Result<FederatedTable, Error> {
+//     let tpch_part_provider = get_tpch_table_provider(name, dataset, secrets).await?;
 
-    let federated_table = FederatedTable::new(tpch_part_provider);
+//     let federated_table = FederatedTable::new(tpch_part_provider);
 
-    Ok(federated_table)
-}
+//     Ok(federated_table)
+// }
 
-async fn get_tpch_table_provider(
-    name: &str,
-    dataset: &Dataset,
-    secrets: Arc<RwLock<Secrets>>,
-) -> Result<Arc<dyn TableProvider>, Error> {
-    let connector_params = ConnectorParamsBuilder::new(name.into(), (dataset).into())
-        .build(secrets)
-        .await
-        .context(UnableToCreateDataConnectorSnafu)?;
+// async fn get_tpch_table_provider(
+//     name: &str,
+//     dataset: &Dataset,
+//     secrets: Arc<RwLock<Secrets>>,
+// ) -> Result<Arc<dyn TableProvider>, Error> {
+//     let connector_params = ConnectorParamsBuilder::new(name.into(), (dataset).into())
+//         .build(secrets)
+//         .await
+//         .context(UnableToCreateDataConnectorSnafu)?;
 
-    let data_connector = create_new_connector("duckdb", connector_params)
-        .await
-        .ok_or_else(|| NoReadProviderSnafu {}.build())?
-        .context(UnableToCreateDataConnectorSnafu)?;
+//     let data_connector = create_new_connector("duckdb", connector_params)
+//         .await
+//         .ok_or_else(|| NoReadProviderSnafu {}.build())?
+//         .context(UnableToCreateDataConnectorSnafu)?;
 
-    let table_provider = data_connector
-        .read_provider(&dataset)
-        .await
-        .context(UnableToCreateSourceTableProviderSnafu)?;
+//     let table_provider = data_connector
+//         .read_provider(&dataset)
+//         .await
+//         .context(UnableToCreateSourceTableProviderSnafu)?;
 
-    Ok(table_provider)
-}
+//     Ok(table_provider)
+// }
 
-fn get_duckdb_dataset(name: &str, path: &str) -> Result<Dataset, Error> {
-    let mut dataset = Dataset::try_new("duckdb:part".to_string(), name)
-        .boxed()
-        .context(UnableToCreateDataConnectorSnafu)?;
+// fn get_duckdb_dataset(name: &str, path: &str) -> Result<Dataset, Error> {
+//     let mut dataset = Dataset::try_new("duckdb:part".to_string(), name)
+//         .boxed()
+//         .context(UnableToCreateDataConnectorSnafu)?;
 
-    let mut params = HashMap::new();
-    params.insert("duckdb_open".to_string(), path.to_string());
-    dataset.params = params;
+//     let mut params = HashMap::new();
+//     params.insert("duckdb_open".to_string(), path.to_string());
+//     dataset.params = params;
 
-    Ok(dataset)
-}
+//     Ok(dataset)
+// }
